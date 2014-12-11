@@ -4,3 +4,6 @@
 *.d
 *.lst
 
+# Data files
+*.dat
+
