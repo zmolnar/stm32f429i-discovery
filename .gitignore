@@ -1,0 +1,6 @@
+# Objectand listing files
+*.o
+*.a
+*.d
+*.lst
+
