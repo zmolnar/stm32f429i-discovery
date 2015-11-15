@@ -39,6 +39,7 @@ LDFLAGS  = -lm
 
 SRC      = $(CHIBIOS)/os/various/shell.c  \
            $(CHIBIOS)/os/various/chprintf.c \
+           $(CHIBIOS)/os/various/memstreams.c \
            main.c \
            usbcfg.c \
            thrDisplay.c \

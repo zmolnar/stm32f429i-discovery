@@ -5,7 +5,7 @@
  * @author Zoltán Molnár
  * @date Thu Nov 20 10:55:30 2014 (+0100)
  * Version: 
- * Last-Updated: Thu Dec 11 10:45:13 2014 (+0100)
+ * Last-Updated: szo nov 14 20:13:22 2015 (+0100)
  *           By: Zoltán Molnár
  * 
  */
@@ -76,7 +76,8 @@ msg_t ThrVario( void *arg)
         
         bpsMeasure (&p_raw, &t_raw);
         
-        chprintf((BaseSequentialStream *)&SDU1,"%d %d\n\r", chTimeNow(), p_raw);
+        chprintf((BaseSequentialStream *)&SDU1,"%d %d %d\n\r", 
+                 chTimeNow(), p_raw, t_raw);
     }
 }
 

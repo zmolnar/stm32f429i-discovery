@@ -5,7 +5,7 @@
  * @author Zoltán Molnár
  * @date Wed Nov 19 15:39:36 2014 (+0100)
  * Version: 
- * Last-Updated: Thu Dec 11 10:44:37 2014 (+0100)
+ * Last-Updated: szo nov 14 20:14:35 2015 (+0100)
  *           By: Zoltán Molnár
  * 
  */
@@ -30,6 +30,9 @@
 /* INCLUDES                                                                    */
 /*******************************************************************************/
 #include "ms5611.h"
+#include "chprintf.h"
+
+extern SerialUSBDriver SDU1;
 
 /*******************************************************************************/
 /* DEFINED CONSTANTS                                                           */
@@ -133,7 +136,6 @@ static void _bps_reset (void)
 
     spiSelect (BPS_SPI);
     spiSend(BPS_SPI, 1, (void *)&cmd);
-    chThdSleepMilliseconds(5);
     spiUnselect( BPS_SPI);    
 }
 
@@ -234,6 +236,7 @@ void bpsInit (void)
 void bpsReset (void)
 {
     _bps_reset ();
+    chThdSleepMilliseconds(250);
     C1 = _bps_read_reg (MS5611_PROM_C1);
     C2 = _bps_read_reg (MS5611_PROM_C2);
     C3 = _bps_read_reg (MS5611_PROM_C3);
@@ -255,7 +258,7 @@ void bpsMeasure (int32_t *pP, int32_t *pT)
     int64_t SENS2 = 0;
 
     /* Second order temperature compensation. */
-    if (TEMP < 20) {
+    if (TEMP < 2000) {
         T2 = ((dT * dT) >> 31);
         OFF2 = (5 * (TEMP - 2000) * (TEMP - 2000)) >> 1;
         SENS2 = (5 * (TEMP - 2000) * (TEMP - 2000)) >> 2;
