@@ -5,8 +5,8 @@
  * @author Zoltán Molnár
  * @date Mon Nov 17 16:21:40 2014 (+0100)
  * Version: 
- * Last-Updated: Thu Dec 11 10:48:13 2014 (+0100)
- *           By: Zoltán Molnár
+ * Last-Updated: Sun Nov 22 14:20:14 2015 (+0100)
+ *           By: Molnár Zoltán
  * 
  */
 
@@ -30,12 +30,13 @@
 /* INCLUDES                                                                    */
 /*******************************************************************************/
 #include "gfx.h"
+#include "chprintf.h"
 #include "shell.h"
 #include "test.h"
-#include "thrDisplay.h"
-#include "thrVario.h"
 #include "usbcfg.h"
-#include "chprintf.h"
+
+#include "thrPressureReader.h"
+#include "thrSignalProcessor.h"
 
 /*******************************************************************************/
 /* DEFINED CONSTANTS                                                           */
@@ -57,10 +58,14 @@
 /* Virtual serial port over USB.*/
 SerialUSBDriver SDU1;
 
+/* Thread descriptors.*/
+Thread *preader = NULL;
+Thread *psignalprocessor = NULL;
+
 /* Thread working areas */
 static WORKING_AREA(waThrBlinker, 128);
-static WORKING_AREA(waThrDisp, 2048);
-static WORKING_AREA(waThrVario, 2048);
+static WORKING_AREA(waThrPressureReader, 2048);
+static WORKING_AREA(waThrSignalProcessor, 2048);
 
 /*******************************************************************************/
 /* DEFINITION OF LOCAL FUNCTIONS                                               */
@@ -68,10 +73,9 @@ static WORKING_AREA(waThrVario, 2048);
 /*
  * Red LED blinker thread, times are in milliseconds.
  */
-static msg_t ThrBlinker(void *arg) {
-
+static msg_t ThrBlinker (void *arg) {
     (void)arg;
-    chRegSetThreadName("Red blinker");
+    chRegSetThreadName("LED blinker");
     while (TRUE) {
         palClearPad(GPIOG, GPIOG_LED4_RED);
         chThdSleepMilliseconds(500);
@@ -191,12 +195,21 @@ int main(void) {
     /*
      * Creating the threads.
      */
-    chThdCreateStatic(waThrBlinker, sizeof(waThrBlinker),
-                      NORMALPRIO + 11, ThrBlinker, NULL);
-    chThdCreateStatic(waThrDisp, sizeof(waThrDisp), 
-                      NORMALPRIO + 10, ThrDisplay, NULL);
-    chThdCreateStatic(waThrVario, sizeof(waThrVario), 
-                      NORMALPRIO + 10, ThrVario, NULL);
+    chThdCreateStatic(waThrBlinker, 
+                      sizeof(waThrBlinker),
+                      NORMALPRIO + 11, 
+                      ThrBlinker, 
+                      NULL);
+    preader = chThdCreateStatic(waThrPressureReader, 
+                                sizeof(waThrPressureReader), 
+                                NORMALPRIO + 10, 
+                                ThrPressureReader, 
+                                NULL);
+    psignalprocessor = chThdCreateStatic(waThrSignalProcessor, 
+                                         sizeof(waThrSignalProcessor), 
+                                         NORMALPRIO + 10, 
+                                         ThrSignalProcessor, 
+                                         NULL);
 
     while(1) {
         if (!shelltp) {

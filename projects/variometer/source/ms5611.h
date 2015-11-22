@@ -1,11 +1,11 @@
-/* thrDisplay.h --- 
+/* ms5611.h --- 
  * 
- * @file thrDisplay.h
- * @brief Display handler thread header file
+ * @file ms5611.h
+ * @brief MS5611 barometric pressure sensor driver interface
  * @author Zoltán Molnár
- * @date Mon Nov 17 16:21:04 2014 (+0100)
+ * @date Wed Nov 19 15:40:09 2014 (+0100)
  * Version: 
- * Last-Updated: Thu Dec 11 10:38:53 2014 (+0100)
+ * Last-Updated: Thu Dec 11 10:44:16 2014 (+0100)
  *           By: Zoltán Molnár
  * 
  */
@@ -26,16 +26,33 @@
  * Floor, Boston, MA 02110-1301, USA.
  */
 
-#ifndef __THRDISPLAY_H
-#define __THRDISPLAY_H
+#ifndef __MS5611_H
+#define __MS5611_H
 
 /*******************************************************************************/
 /* INCLUDES                                                                    */
 /*******************************************************************************/
+#include "ch.h"
+#include "hal.h"
 
 /*******************************************************************************/
 /* DEFINED CONSTANTS                                                           */
 /*******************************************************************************/
+/**
+ * SPI peripheral identifier
+ * @defgroup MS5611 serial interface
+ * @{
+ */
+#define BPS_SPI                  &SPID4 /**< SPI peripheral indentifier. */
+#define BPS_SPI_MOSI_PORT         GPIOE /**< SPI MOSI pin port. */
+#define BPS_SPI_MOSI_PAD              6 /**< SPI MOSI pin pad. */
+#define BPS_SPI_MISO_PORT         GPIOE /**< SPI MISO pin port. */
+#define BPS_SPI_MISO_PAD              5 /**< SPI MISO pin pad. */
+#define BPS_SPI_SCK_PORT          GPIOE /**< SPI SCK pin port. */
+#define BPS_SPI_SCK_PAD               2 /**< SPI SCK pin pad. */
+#define BPS_SPI_NCS_PORT          GPIOE /**< SPI slave-select pin port. */
+#define BPS_SPI_NCS_PAD               4 /**< SPI slave-select pin pad. */
+/** @} */
 
 /*******************************************************************************/
 /* MACRO DEFINITIONS                                                           */
@@ -52,12 +69,25 @@
 /*******************************************************************************/
 /* DECLARATION OF GLOBAL FUNCTIONS                                             */
 /*******************************************************************************/
-/*
- * Display handler thread
+/**
+ * Initialize MS5611 serial interface
  */
-msg_t ThrDisplay( void *arg);
+void MS5611_Init (void);
 
-#endif /* THRDISPLAY_H */
+/**
+ * Send reset command and read calibration data from MS5611
+ */
+void MS5611_Reset (void);
+
+/**
+ * Read raw pressure and temperature values from MS5611
+ * @param[in] pP Pointer to the variable to store temperature compensated 
+ *               raw pressure value
+ * @param[in] pT Pointer to the variable to store raw temperature value
+ */
+void MS5611_Measure (int32_t *pP, int32_t *pT);
+
+#endif /* MS5611_H */
 
 /******************************* END OF FILE ***********************************/
 

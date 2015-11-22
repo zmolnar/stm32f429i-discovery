@@ -8,7 +8,7 @@
 	# See $(GFXLIB)/tools/gmake_scripts/readme.txt for the list of variables
 	OPT_OS					= chibios
 	OPT_THUMB				= yes
-	OPT_LINK_OPTIMIZE		        = yes
+	OPT_LINK_OPTIMIZE		= yes
 	OPT_CPU					= stm32m4
 
 # uGFX settings
@@ -19,11 +19,11 @@
 # ChibiOS settings
 ifeq ($(OPT_OS),chibios)
 	# See $(GFXLIB)/tools/gmake_scripts/os_chibios.mk for the list of variables
-	CHIBIOS				        = ../..
-	CHIBIOS_BOARD		                = ST_STM32F429I_DISCOVERY
-	CHIBIOS_PLATFORM	                = STM32F4xx
-	CHIBIOS_PORT		                = GCC/ARMCMx/STM32F4xx
-	CHIBIOS_LDSCRIPT	                = STM32F407xG.ld
+	CHIBIOS				    = ../..
+	CHIBIOS_BOARD		    = ST_STM32F429I_DISCOVERY
+	CHIBIOS_PLATFORM	    = STM32F4xx
+	CHIBIOS_PORT		    = GCC/ARMCMx/STM32F4xx
+	CHIBIOS_LDSCRIPT	    = STM32F407xG.ld
 endif
 
 ##############################################################################################
@@ -32,7 +32,7 @@ endif
 
 ARCH     = arm-none-eabi-
 SRCFLAGS = -ggdb -O0
-CFLAGS   =
+CFLAGS   = -DCHPRINTF_USE_FLOAT=TRUE
 CXXFLAGS = -fno-rtti
 ASFLAGS  =
 LDFLAGS  = -lm
@@ -40,11 +40,11 @@ LDFLAGS  = -lm
 SRC      = $(CHIBIOS)/os/various/shell.c  \
            $(CHIBIOS)/os/various/chprintf.c \
            $(CHIBIOS)/os/various/memstreams.c \
-           main.c \
-           usbcfg.c \
-           thrDisplay.c \
-           thrVario.c \
-           ms5611.c 
+           source/main.c \
+           source/usbcfg.c \
+           source/thrPressureReader.c \
+           source/thrSignalProcessor.c \
+           source/ms5611.c
 OBJS     =
 DEFS     =
 LIBS     =

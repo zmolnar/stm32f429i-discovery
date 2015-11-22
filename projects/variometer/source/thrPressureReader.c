@@ -1,84 +1,63 @@
-/* thrVario.c --- 
+/* thrPressureReader.c --- 
  * 
- * @file thrVario.c
- * @brief Variometer module
- * @author Zoltán Molnár
- * @date Thu Nov 20 10:55:30 2014 (+0100)
- * Version: 
- * Last-Updated: szo nov 14 20:13:22 2015 (+0100)
- *           By: Zoltán Molnár
+ * @file thrPressureReader.c
+ * @brief Read pressure data from MS5611 barometric pressure sensor.
+ * @author Molnár Zoltán
+ * @date Sun Nov 22 13:17:39 2015 (+0100)
+ * Version: 1.0.0
+ * Last-Updated: Sun Nov 22 15:12:12 2015 (+0100)
+ *           By: Molnár Zoltán
  * 
- */
-
-/* This program is free software; you can redistribute it and/or
- * modify it under the terms of the GNU General Public License as
- * published by the Free Software Foundation; either version 3, or
- * (at your option) any later version.
- * 
- * This program is distributed in the hope that it will be useful,
- * but WITHOUT ANY WARRANTY; without even the implied warranty of
- * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
- * General Public License for more details.
- * 
- * You should have received a copy of the GNU General Public License
- * along with this program; see the file COPYING.  If not, write to
- * the Free Software Foundation, Inc., 51 Franklin Street, Fifth
- * Floor, Boston, MA 02110-1301, USA.
  */
 
 /*******************************************************************************/
 /* INCLUDES                                                                    */
 /*******************************************************************************/
-#include "ch.h"
-#include "chprintf.h"
-#include "gfx.h"
+#include "thrPressureReader.h"
 #include "ms5611.h"
-#include <math.h>
-#include <stdint.h>
 
 /*******************************************************************************/
 /* DEFINED CONSTANTS                                                           */
 /*******************************************************************************/
-extern SerialUSBDriver SDU1;
+
 
 /*******************************************************************************/
 /* MACRO DEFINITIONS                                                           */
 /*******************************************************************************/
 
+
 /*******************************************************************************/
 /* TYPE DEFINITIONS                                                            */
 /*******************************************************************************/
+extern Thread *psignalprocessor;
 
 /*******************************************************************************/
-/* DEFINITIONS OF GLOBAL CONSTANTS AND VARIABLES                               */
+/* DEFINITION OF GLOBAL CONSTANTS AND VARIABLES                                */
 /*******************************************************************************/
+
 
 /*******************************************************************************/
 /* DEFINITION OF LOCAL FUNCTIONS                                               */
 /*******************************************************************************/
 
+
 /*******************************************************************************/
 /* DEFINITION OF GLOBAL FUNCTIONS                                              */
 /*******************************************************************************/
-/* See documentation in header file */
-msg_t ThrVario( void *arg)
-{
-    (void)arg;
-    chRegSetThreadName("Variometer");   
+msg_t ThrPressureReader (void *arg) {
+        (void)arg;
+        chRegSetThreadName("PressureReader");   
+        
+        MS5611_Init ();
+        MS5611_Reset ();
+        
+        while (1) {
+                struct PressureData_s data = {0};
 
-    /* Initialize and reset MS5611 */
-    bpsInit ();
-    bpsReset ();
-    
-    while (1) {
-        int32_t p_raw = 0;
-        int32_t t_raw = 0;
-        
-        bpsMeasure (&p_raw, &t_raw);
-        
-        chprintf((BaseSequentialStream *)&SDU1,"%d %d %d\n\r", 
-                 chTimeNow(), p_raw, t_raw);
-    }
+                MS5611_Measure (&data.p_raw, &data.t_raw);
+                data.t = chTimeNow();
+                chMsgSend (psignalprocessor, (msg_t)&data);
+        }
 }
 
 

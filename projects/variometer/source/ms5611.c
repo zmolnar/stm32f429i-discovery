@@ -19,7 +19,7 @@
  * but WITHOUT ANY WARRANTY; without even the implied warranty of
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the GNU
  * General Public License for more details.
- * 
+ *
  * You should have received a copy of the GNU General Public License
  * along with this program; see the file COPYING.  If not, write to
  * the Free Software Foundation, Inc., 51 Franklin Street, Fifth
@@ -30,9 +30,6 @@
 /* INCLUDES                                                                    */
 /*******************************************************************************/
 #include "ms5611.h"
-#include "chprintf.h"
-
-extern SerialUSBDriver SDU1;
 
 /*******************************************************************************/
 /* DEFINED CONSTANTS                                                           */
@@ -46,7 +43,7 @@ extern SerialUSBDriver SDU1;
 /* TYPE DEFINITIONS                                                            */
 /*******************************************************************************/
 /**
- * Enumeration to select which parameter to read from MS5611
+ * Enumeration to select which parameter to read from MS5611.
  */
 typedef enum bps_data {
     BPS_PRESSURE,
@@ -55,7 +52,7 @@ typedef enum bps_data {
 
 /**
  * MS5611 command set
- * @defgroup MS5611 pressure sensor command set
+ * @defgroup MS5611 pressure sensor command set.
  * @{
  */
 typedef enum bps_command {
@@ -76,7 +73,7 @@ typedef enum bps_command {
 /** @} */
 
 /**
- * MS5611 PROM internal registers containing calibration data
+ * MS5611 PROM internal registers containing calibration data.
  */
 typedef enum bps_prom_register {
     MS5611_PROM_FACT = 0x00,
@@ -90,7 +87,7 @@ typedef enum bps_prom_register {
 } bps_prom_register;
 
 /**
- * Macro to calculate command byte for reading specific PROM register
+ * Macro to calculate command byte for reading specific PROM register.
  */
 #define MS5611_CMD_PROM_READ(reg) (MS5611_CMD_PROM_READ_BASE | ((reg)<<1))
 
@@ -98,22 +95,21 @@ typedef enum bps_prom_register {
 /* DEFINITIONS OF GLOBAL CONSTANTS AND VARIABLES                               */
 /*******************************************************************************/
 /**
- * SPI driver configuration
- * @brief MS5611 SPI configuration structure
+ * SPI driver configuration.
+ * @brief MS5611 SPI configuration structure.
  */
 const SPIConfig bps_spi_cfg = {
     NULL,
     BPS_SPI_NCS_PORT,
     BPS_SPI_NCS_PAD,
     (((0x5 << 3) & SPI_CR1_BR)    |
-     SPI_CR1_MSTR                 | 
-     SPI_CR1_CPOL                 |  
+     SPI_CR1_MSTR                 |
+     SPI_CR1_CPOL                 |
      SPI_CR1_CPHA)
 };
-    
+
 /**
- * Factory set calibration constants
- * @defgroup Calibration constants
+ * Factory set calibration constants.
  * @{
  */
 static uint16_t C1 = 0;  /**< Pressure sensitivity | SENS T1 */
@@ -128,15 +124,15 @@ static uint16_t C6 = 0;  /**< Temperature coefficient of the temperature | TEMPS
 /* DEFINITION OF LOCAL FUNCTIONS                                               */
 /*******************************************************************************/
 /**
- * Send reset sequence to the MS5611
+ * Send reset sequence to the MS5611.
  */
-static void _bps_reset (void)
+static void ms5611_reset (void)
 {
     uint8_t cmd = MS5611_CMD_RESET;
 
     spiSelect (BPS_SPI);
     spiSend(BPS_SPI, 1, (void *)&cmd);
-    spiUnselect( BPS_SPI);    
+    spiUnselect( BPS_SPI);
 }
 
 /**
@@ -145,16 +141,16 @@ static void _bps_reset (void)
  * @param[in] Reg Identifier of the register to read
  * @retval Register value
  */
-static uint32_t _bps_read_reg (const bps_prom_register Reg)
+static uint32_t ms5611_read_reg (const bps_prom_register Reg)
 {
     uint8_t cmd = MS5611_CMD_PROM_READ(Reg);
     uint8_t tmp[2];
 
     spiSelect (BPS_SPI);
     spiSend (BPS_SPI, 1, &cmd);
-    spiReceive (BPS_SPI, 2, tmp); 
+    spiReceive (BPS_SPI, 2, tmp);
     spiUnselect (BPS_SPI);
-    
+
     /* Swap bytes */
     return (((uint16_t)tmp[0]) << 8) + (uint16_t)tmp[1];
 }
@@ -167,11 +163,11 @@ static uint32_t _bps_read_reg (const bps_prom_register Reg)
  *            BPS_TEMP     : read uncompensated temperature
  * @return The result of the conversation
  */
-static uint32_t _bps_convert (bps_data_t data)
+static uint32_t ms5611_convert (bps_data_t data)
 {
     uint8_t cmd = 0;
     uint8_t tmp[3];
-    
+
     switch (data) {
     case BPS_PRESSURE: {
         cmd = MS5611_CMD_CONV_D1_OSR_4096;
@@ -181,7 +177,7 @@ static uint32_t _bps_convert (bps_data_t data)
         cmd = MS5611_CMD_CONV_D2_OSR_4096;
         break;
     }
-    default: 
+    default:
         return 0;
     }
 
@@ -205,7 +201,7 @@ static uint32_t _bps_convert (bps_data_t data)
 /*******************************************************************************/
 /* DEFINITION OF GLOBAL FUNCTIONS                                              */
 /*******************************************************************************/
-void bpsInit (void)
+void MS5611_Init (void)
 {
     /* Configure NCS */
     palSetPad (BPS_SPI_NCS_PORT, BPS_SPI_NCS_PAD);
@@ -233,22 +229,22 @@ void bpsInit (void)
     spiStart (BPS_SPI, &bps_spi_cfg);
 }
 
-void bpsReset (void)
+void MS5611_Reset (void)
 {
-    _bps_reset ();
+    ms5611_reset ();
     chThdSleepMilliseconds(250);
-    C1 = _bps_read_reg (MS5611_PROM_C1);
-    C2 = _bps_read_reg (MS5611_PROM_C2);
-    C3 = _bps_read_reg (MS5611_PROM_C3);
-    C4 = _bps_read_reg (MS5611_PROM_C4);
-    C5 = _bps_read_reg (MS5611_PROM_C5);
-    C6 = _bps_read_reg (MS5611_PROM_C6);
+    C1 = ms5611_read_reg (MS5611_PROM_C1);
+    C2 = ms5611_read_reg (MS5611_PROM_C2);
+    C3 = ms5611_read_reg (MS5611_PROM_C3);
+    C4 = ms5611_read_reg (MS5611_PROM_C4);
+    C5 = ms5611_read_reg (MS5611_PROM_C5);
+    C6 = ms5611_read_reg (MS5611_PROM_C6);
 }
 
-void bpsMeasure (int32_t *pP, int32_t *pT)
+void MS5611_Measure (int32_t *pP, int32_t *pT)
 {
-    uint32_t D1 = _bps_convert (BPS_PRESSURE);
-    uint32_t D2 = _bps_convert (BPS_TEMP);
+    uint32_t D1 = ms5611_convert (BPS_PRESSURE);
+    uint32_t D2 = ms5611_convert (BPS_TEMP);
     int64_t dT = (int64_t)D2 - ((uint64_t)C5 << 8);
     int64_t TEMP = 2000 + ((dT * (int64_t)C6) >> 23);
     int64_t OFF = ((uint64_t)C2 << 16) + (((int64_t)C4 * dT) >> 7);
@@ -274,7 +270,7 @@ void bpsMeasure (int32_t *pP, int32_t *pT)
         OFF2 = 0;
         SENS2 = 0;
     }
-    
+
     TEMP -= T2;
     OFF -= OFF2;
     SENS -= SENS2;
