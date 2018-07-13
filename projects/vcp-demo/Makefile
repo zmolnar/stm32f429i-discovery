@@ -219,5 +219,9 @@ ULIBS =
 # End of user defines
 ##############################################################################
 
+tags:
+	@etags $(CSRC) $(TAGFILE) $(shell find $(INCDIR) -type f -iname "*.h")
+	@echo TAGS generated succesfully.
+
 RULESPATH = $(CHIBIOS)/os/ports/GCC/ARMCMx
 include $(RULESPATH)/rules.mk
